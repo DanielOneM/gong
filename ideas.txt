@@ -1,0 +1,82 @@
+Stress test:
+
+4-5 workers that send sms
+1 worker that analyzes answers
+Web dashboard to command/see results
+multi user login
+user can change encoding for messages sent; user can select one of the two available modes; stress testing is not available to all users; if there is a stress test in progress, any user that accesses that section cannot start a new stress test but can view the results of the current stress test;
+
+testing scenarios=send one message, see if the returned message matches your expectations, make a list of messages with matches
+
+testing scenario can be manual (user advances manually to the next step in the scenario, confirming visually that the received message is correct) or automated (user starts a sequence and the sequence stops at the first occurence of a message that does not fit the expected response); user can deploy multiple automated scenarios at the same time
+
+stressing scenarios=send x messages, with frequency z, for period y, check that all messages get answered, check latency
+
+results from testing scenarios=log with received message, timing of message sent and message received
+
+results from stressing scenarios=graph with number of messages sent/received per second, for the given interval, info about percentage of messages dropped (unanswered), grouping of answer times (eventually graph of average answer times as related to volume of sent messages; the results should be saved and can be viewed and compared to past results
+
+there's an admin section where you can add or delete connections to jasmin smsc's with info about what settings are necessary. also here there is a section where you can build sequences (ordered lists of msgs). messages can be simple or paired (where you have a message and an expected response pattern or text attached to it). sequences are built out of messages; the user can either enter message-response pairs in the sequence builder. sequences can be of unlimited length.
+
+in the simple testing area, you can select one jasmin and test with one of the following flows: enter a message and wait for a response, select a sequence from the library, check if it should block on error or not. the results will be displayed in a dialog area. stats from the exchange will be displayed on the side.
+
+
+1.the user selects stress testing. 
+2.the user selects one jasmin to stress test. 
+3.the user selects one or more operators to use
+4.the user selects min and max phone numbers per operator and duration of testing
+5.the user selects a flood strategy from the following: 
+	-full force(same number of smses for each operator and each phone number, from the start, for a given time interval)
+	-balanced growth(each operator starts sending a min nr of smses and within a timed interval of each other they start growing until a max sms, then decreasing back to an average)
+	-random(each phone number sends a random number of smses within a min and a max)
+	-custom(for each operator the user defines a min smses, a max smses, optionally a function to handle variations; otherwise linear is used)
+6.the user selects one or more sequences to use in testing; alternatively sequences can be selected randomly for each operator and each phone number
+7.the user starts testing
+8.the app keeps the following analytics: total smses sent per phone number, smses per second per phone number, total responses per phone number, responses per second per phone number, total valid responses per phone number, invalid responses per phone number, idle time per phone number
+
+1.the user selects normal testing
+2.the user selects one jasmin to use for testing.
+3.the user selects one operator
+4.the user selects a used number or starts a new number
+5.the user interacts manually with the server, sending a sms or selecting a sequence to be sent
+6.the app keeps the same analytics as in stress testing
+
+app has to save:
+-operator ids
+-phone numbers
+-analytics for each phone number and each session
+-sequences (of smses)
+-users
+
+app has to cache:
+-active phone numbers and stats for each
+-sms sequence (to handle responses and check errors)
+
+questions:
+1.can we start multiple smpp servers on different ports simultaneously? maybe using the ireactor spawnprocess?
+
+architecture:
+-command and control module, that handles user interaction and analytics:
+	-web frontend using twisted and jinja2
+	-analytics service (possibly run separately from the web frontend??)
+-X workers, each posing as one operator to a certain jasmin server (optionally X jasmin instances running in parallel)
+-mongodb to handle persistent data
+-redis to handle cached data
+
+various:
+-in jasmin there are multiple factories tied to the same reactor
+-the idea would be to start multiple servers and then start the reactor (obviously this means that you cannot dynamically add servers while running)
+-the c&c server would have multiple services: web interface, analytics service, 
+-the worker would take inputs from one rmq queue and send them to the connected entities; any messages received would be put on another rmq queue
+
+implementation:
+-we start a reactor with the smpp server
+-the smpp server sends a message each time there is any event on the pika incoming queue
+-the smpp server puts a message on the outgoing pika queue each time it receives a message
+-the starting config contains the following: 
+	for the smpp server: host, port, user, password
+	for the pika queues: host, port, incoming queue name, outgoing queue name
+-the worker has two components: smpp server and rmq queue
+-a deferred queue gets attached to the pdureceived function of the smpp server
+-set the config.msgHandler to a function that puts the received message on a rmq queue
+
