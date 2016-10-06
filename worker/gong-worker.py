@@ -1,45 +1,58 @@
 # -*- coding:utf-8 -*-
 
 import pika
+import signal
+import sys
 from pika.adapters import twisted_connection
+from twisted.python import usage
 from twisted.internet import defer, reactor, protocol, task
 from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
 from twisted.cred.portal import Portal
 from smpp.twisted.config import SMPPServerConfig
 from smpp.twisted.server import SMPPServerFactory
+from smpp.pdu.operations import *
+from smpp.pdu.pdu_types import *
 
 
 class GongWorker(object):
+    """SMSC simulator server."""
 
-    def __init__(self, exchange=None,
-                 topic=None,
-                 incoming_q='send',
-                 outgoing_q='received',
-                 incoming_rk='send',
-                 outgoing_rk='received',
-                 rabbit_host=None,
+    def __init__(self, name=None,
+                 exchange='gong',
+                 topic='gong',
+                 incoming_q='received',
+                 outgoing_q='send',
+                 rabbit_host='localhost',
                  rabbit_port=5672,
-                 smpp_host='localhost',
-                 smpp_port=2775,
+                 smpp_port=None,
                  smpp_user='default',
                  smpp_pass='default'):
+        """Initialize the worker."""
+        if name is None:
+            raise ValueError('GongWorker node needs a name.')
+        if smpp_port is None:
+            raise ValueError('GongWorker needs a port number for the local port to listen to')
 
+        try:
+            self.smpp_port = int(smpp_port)
+        except Exception:
+            raise ValueError('GongWorker SMPP port number needs to be an integer')
+
+        self.name = name
         self.exchange = exchange
         self.topic = topic
         self.incoming_q = incoming_q
-        self.incoming_rk = incoming_rk
+        self.incoming_rk = '{}.{}'.format(incoming_q, name)
         self.outgoing_q = outgoing_q
-        self.outgoing_rk = outgoing_rk
+        self.outgoing_rk = '{}.{}'.format(outgoing_q, name)
+        self.rabbit_host = rabbit_host
+        self.rabbit_port = rabbit_port
+        self.smpp_user = smpp_user
+        self.smpp_pass = smpp_pass
+        self.components = {}
 
-        # start the components
-        self.rabbit_server = self.start_rabbit(rabbit_host=rabbit_host,
-                                               rabbit_port=rabbit_port)
-        self.smpp_server = self.start_smpp(smpp_host, smpp_port,
-                                           smpp_user=smpp_user,
-                                           smpp_pass=smpp_pass)
-
-    def start_rabbit(self, rabbit_host=None, rabbit_port=5672):
-
+    def start_rabbit(self, rabbit_host, rabbit_port):
+        """Start the rabbit server connection."""
         parameters = pika.ConnectionParameters()
         cc = protocol.ClientCreator(reactor,
                                     twisted_connection.TwistedProtocolConnection,
@@ -51,11 +64,11 @@ class GongWorker(object):
         return rabbit_server
 
     def stop_rabbit(self):
-        return self.rabbit_server.stopListening()
+        """Stop the rabbit server connection."""
+        return self.components['rabbit_server'].stopListening()
 
-    def start_smpp(self, smpp_host, smpp_port, 
-                   smpp_user='default', smpp_pass='default'):
-
+    def start_smpp(self, smpp_port, smpp_user, smpp_pass):
+        """Start the smpp server."""
         portal = Portal(self.SmppRealm())
         credential_checker = InMemoryUsernamePasswordDatabaseDontUse()
         credential_checker.addUser(smpp_user, smpp_pass)
@@ -63,16 +76,17 @@ class GongWorker(object):
         cfg = SMPPServerConfig()
 
         self.factory = SMPPServerFactory(cfg, auth_portal=portal)
-        self.proto = self.factory.buildProtocol((smpp_host, smpp_port))
-        smpp_server = reactor.listenTCP(self.factory)
+        smpp_server = reactor.listenTCP(smpp_port, self.factory)
 
         return smpp_server
 
     def stop_smpp(self):
-        return self.smpp_server.stopListening()
+        """Stop the smpp server."""
+        return self.components['smpp_server'].stopListening()
 
     @defer.inlineCallbacks
     def start_consuming(self, connection):
+        """Start consuming from the incoming queue."""
         channel = yield connection.channel()
         exchange = yield channel.exchange_declare(exchange=self.exchange,
                                                   type=self.topic,
@@ -93,45 +107,67 @@ class GongWorker(object):
         work_task.start(0)
 
     @defer.inlineCallbacks
-    def process_incoming(self, queue_object):
+    def process_outgoing(self, queue_object):
+        """Send messages from the incoming queue through the smpp server."""
         ch, method, properties, body = yield queue_object.get()
 
-        if body:
-            print body
+        pdu = DeliverSM(
+            source_addr=body['src'],
+            destination_addr=body['dst'],
+            short_message=body['sms'],
+        )
+        yield self.components['smpp_server'].sendPDU(pdu)
 
         yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    def stop_consuming(self):
-        pass
-
     def start(self):
-        pass
+        """Start the worker."""
+        # start the components
+        self.components['rabbit_server'] = self.start_rabbit(self.rabbit_host,
+                                                             self.rabbit_port)
+        self.components['smpp_server'] = self.start_smpp(self.smpp_port,
+                                                         self.smpp_user,
+                                                         self.smpp_pass)
 
     def stop(self):
-        pass
+        """Stop the worker."""
+        reactor.stop()
 
-    def read_from_queue(self):
-        pass
-
-    def write_to_queue(self):
-        pass
-
-    def send_sms(self):
-        pass
-
-    def receive_sms(self):
-        pass
+    def gentle_stop(self, a, b):
+        """Handle an external stop signal."""
+        return self.stop()
 
 
-@defer.inlineCallbacks
-def read(self, queue_object):
-    ch, method, properties, body = yield queue_object.get()
+class Options(usage.Options):
+    """Command-line options for GongWorker."""
 
-    if body:
-        print body
+    optParameters = [
+        ['name', 'n', None, 'Name for the GongWorker node']
+        ['exchange', 'e', 'gong', 'RabbitMQ exchange name'],
+        ['topic', 't', 'gong', 'RabbitMQ topic name'],
+        ['incoming_q', 'iq', 'received', 'Queue to store received messages'],
+        ['outgoing_q', 'oq', 'send', 'Queue used to submit messages to be sent'],
+        ['rabbit_host', 'rh', 'localhost', 'RabbitMQ hostname'],
+        ['rabbit_port', 'rp', 5672, 'RabbitMQ port'],
+        ['smpp_port', 'p', None, 'Port to use for the SMPP server'],
+        ['smpp_user', 'su', 'default', 'User for the SMPP server'],
+        ['smpp_pass', 'sp', 'default', 'Password for the SMPP server user']
+    ]
 
-    yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
+if __name__ == '__main__':
 
+    try:
+        options = Options()
+        options.parseOptions()
 
-reactor.run()
+        gongd = GongWorker(**options)
+        # Setup signal handlers
+        signal.signal(signal.SIGINT, gongd.gentle_stop)
+        # Start Gong Worker daemon
+        gongd.start()
+
+        reactor.run()
+    except usage.UsageError, errortext:
+        print '%s: %s' % (sys.argv[0], errortext)
+        print '%s: Try --help for usage details.' % (sys.argv[0])
