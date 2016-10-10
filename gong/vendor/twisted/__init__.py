@@ -13,3 +13,7 @@ Copyright 2009-2010 Mozes, Inc.
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+from config import *
+from server import *
+from client import *
+from protocol import *

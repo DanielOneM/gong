@@ -3,6 +3,9 @@ import pika
 import signal
 import sys
 import logging
+#TODO: horrible hack used to solve import problems with vendor packages
+sys.path.append("")
+
 from pika.adapters import twisted_connection
 from twisted.python import usage
 from twisted.internet import defer, reactor, protocol, task
@@ -10,7 +13,6 @@ from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
 from twisted.cred.portal import Portal
 from twisted.cred.portal import IRealm
 from zope.interface import implements
-import ipdb; ipdb.set_trace()
 from gong.vendor.twisted.server import SMPPServerFactory
 from gong.vendor.twisted.config import SMPPServerConfig
 
