@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 import pika
 import signal
-import sys
+import sys, os
 import logging
 #TODO: horrible hack used to solve import problems with vendor packages
+sys.path.append(os.path.dirname(__file__))
 sys.path.append("")
 
 from pika.adapters import twisted_connection
@@ -35,7 +36,6 @@ class GongWorker(object):
                  rabbit_host='localhost',
                  rabbit_port=5672,
                  smpp_port=None,
-                 smpp_user='default',
                  smpp_pass='default',
                  log=None):
         """Initialize the worker."""
@@ -57,7 +57,6 @@ class GongWorker(object):
         self.send_rk = name
         self.rabbit_host = rabbit_host
         self.rabbit_port = int(rabbit_port)
-        self.smpp_user = smpp_user
         self.smpp_pass = smpp_pass
         self.components = {}
 
@@ -83,11 +82,11 @@ class GongWorker(object):
         """Stop the rabbit server connection."""
         return self.components['rabbit_server'].stopListening()
 
-    def start_smpp(self, smpp_port, smpp_user, smpp_pass):
+    def start_smpp(self, smpp_port, smpp_pass):
         """Start the smpp server."""
         portal = Portal(SmppRealm())
         credential_checker = InMemoryUsernamePasswordDatabaseDontUse()
-        credential_checker.addUser(smpp_user, smpp_pass)
+        credential_checker.addUser(self.name, smpp_pass)
         portal.registerChecker(credential_checker)
         cfg = SMPPServerConfig(msgHandler=self.process_incoming,
                                systems={self.name: {"max_bindings": 1}})
@@ -165,7 +164,6 @@ class GongWorker(object):
                                                              self.rabbit_port)
         self.log.debug('starting smpp')
         self.components['smpp_server'] = self.start_smpp(self.smpp_port,
-                                                         self.smpp_user,
                                                          self.smpp_pass)
         self.log.debug('setup completed')
 
@@ -191,7 +189,6 @@ class Options(usage.Options):
         ['rabbit_host', '', 'localhost', 'RabbitMQ hostname'],
         ['rabbit_port', '', 5672, 'RabbitMQ port'],
         ['smpp_port', 'p', None, 'Port to use for the SMPP server'],
-        ['smpp_user', '', 'default', 'User for the SMPP server'],
         ['smpp_pass', '', 'default', 'Password for the SMPP server user']
     ]
 
