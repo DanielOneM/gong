@@ -16,6 +16,7 @@ from twisted.cred.portal import IRealm
 from zope.interface import implements
 from gong.vendor.twisted.server import SMPPServerFactory
 from gong.vendor.twisted.config import SMPPServerConfig
+from gong.vendor.pdu.operations import DeliverSM
 
 
 class SmppRealm(object):
@@ -32,7 +33,7 @@ class GongWorker(object):
                  exchange='gong',
                  recv_rk='received',
                  send_rk='send',
-                 rabbit_host='172.19.0.3',
+                 rabbit_host='localhost',
                  rabbit_port=5672,
                  smpp_port=None,
                  smpp_pass='default',
@@ -63,10 +64,14 @@ class GongWorker(object):
         else:
             self.log = log
 
+        self.log.debug(self.__dict__)
+
     def start_rabbit(self, rabbit_host, rabbit_port):
         """Start the rabbit server connection."""
+        credentials = pika.PlainCredentials('guest','guest')
         parameters = pika.ConnectionParameters(host=rabbit_host,
-                                               port=rabbit_port)
+                                               port=rabbit_port,
+                                               credentials=credentials)
         cc = protocol.ClientCreator(reactor,
                                     twisted_connection.TwistedProtocolConnection,
                                     parameters)
@@ -123,7 +128,7 @@ class GongWorker(object):
         yield self.channel.basic_qos(prefetch_count=1)
 
         consume_tuple = yield self.channel.basic_consume(queue=self.send_q,
-                                                         no_ack=False)
+                                                         no_ack=True)
         self.queue_object, consumer_tag = consume_tuple
 
         self.log.debug('starting consumer')
@@ -137,23 +142,23 @@ class GongWorker(object):
         self.log.debug('Received outgoing msg: %s', body)
 
         body = eval(body)
-        pdu = dict(
+        # TODO: create a correct PDU with all the necessary info
+        pdu = DeliverSM(
             source_addr=body['src'],
             destination_addr=body['dst'],
-            short_message=body['sms'],
+            short_message=body['sms'].encode('utf8'),
         )
-        # TODO: find the actual protocol object instantiated,
-        #       probably it's inside self.smpp_factory.bound_connections
-        binding = self.smpp_factory.getNextBindingForDelivery()
+        
+        binding = self.smpp_factory.getBoundConnections(self.name).getNextBindingForDelivery()
         if binding is not None:
-            binding.sendPDU(pdu)
+            yield binding.sendPDU(pdu)
 
-        yield ch.basic_ack(delivery_tag=method.delivery_tag)
+        #yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
     @defer.inlineCallbacks
     def process_incoming(self, smpp, pdu):
         """Send messages received by the smpp server to the incoming queue."""
-        self.channel.basic_publish(exchange=self.exchange,
+        yield self.channel.basic_publish(exchange=self.exchange,
                                    routing_key=self.recv_rk,
                                    body=pdu)
 

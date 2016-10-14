@@ -6,4 +6,4 @@ MAINTAINER Daniel Enache <daniel.enache@onem.com>
 EXPOSE 2775
 
 # start app
-CMD python gong/gong-worker.py -n test -p 2775
+CMD python gong/gong-worker.py -n test -p 2775 --rabbit_host 172.25.0.2
