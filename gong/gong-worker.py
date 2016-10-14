@@ -30,7 +30,6 @@ class GongWorker(object):
 
     def __init__(self, name=None,
                  exchange='gong',
-                 topic='gong',
                  recv_rk='received',
                  send_rk='send',
                  rabbit_host='localhost',
@@ -51,7 +50,6 @@ class GongWorker(object):
 
         self.name = name
         self.exchange = exchange
-        self.topic = topic
         self.recv_rk = recv_rk
         self.send_q = '{}.{}'.format(send_rk, name)
         self.send_rk = name
@@ -146,7 +144,9 @@ class GongWorker(object):
         )
         # TODO: find the actual protocol object instantiated,
         #       probably it's inside self.smpp_factory.bound_connections
-        yield self.smpp_factory.protocol.sendPDU(pdu)
+        binding = self.smpp_factory.getNextBindingForDelivery()
+        if binding is not None:
+            yield binding.sendPDU(pdu)
 
         yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -183,7 +183,6 @@ class Options(usage.Options):
     optParameters = [
         ['name', 'n', None, 'Name for the GongWorker node'],
         ['exchange', 'e', 'gong', 'RabbitMQ exchange name'],
-        ['topic', 't', 'gong', 'RabbitMQ topic name'],
         ['recv_rk', 'i', 'received', 'Queue to store received messages'],
         ['send_rk', 'o', 'send', 'Queue used to submit messages to be sent'],
         ['rabbit_host', '', 'localhost', 'RabbitMQ hostname'],
