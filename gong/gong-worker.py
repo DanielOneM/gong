@@ -126,7 +126,7 @@ class GongWorker(object):
                                                          no_ack=False)
         self.queue_object, consumer_tag = consume_tuple
 
-        self.log.debug('starting task')
+        self.log.debug('starting consumer')
         work_task = task.LoopingCall(self.process_outgoing, self.queue_object)
         work_task.start(0.01)
 
@@ -146,10 +146,11 @@ class GongWorker(object):
         #       probably it's inside self.smpp_factory.bound_connections
         binding = self.smpp_factory.getNextBindingForDelivery()
         if binding is not None:
-            yield binding.sendPDU(pdu)
+            binding.sendPDU(pdu)
 
         yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
+    @defer.inlineCallbacks
     def process_incoming(self, smpp, pdu):
         """Send messages received by the smpp server to the incoming queue."""
         self.channel.basic_publish(exchange=self.exchange,
@@ -162,9 +163,9 @@ class GongWorker(object):
         self.log.debug('starting rmq')
         self.components['rabbit_server'] = self.start_rabbit(self.rabbit_host,
                                                              self.rabbit_port)
-        # self.log.debug('starting smpp')
-        # self.components['smpp_server'] = self.start_smpp(self.smpp_port,
-        #                                                  self.smpp_pass)
+        self.log.debug('starting smpp')
+        self.components['smpp_server'] = self.start_smpp(self.smpp_port,
+                                                         self.smpp_pass)
         self.log.debug('setup completed')
 
     def stop(self):

@@ -17,6 +17,8 @@ def run(connection):
 
     yield channel.basic_qos(prefetch_count=1)
 
+    channel.basic_publish(exchange='topic_link', routing_key='hello.world', body='something')
+
     queue_object, consumer_tag = yield channel.basic_consume(queue='hello',no_ack=False)
 
     l = task.LoopingCall(read, queue_object)
@@ -35,7 +37,7 @@ def read(queue_object):
     yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-parameters = pika.ConnectionParameters(host='localhost', port=5672)
+parameters = pika.ConnectionParameters(host='0.0.0.0', port=5672)
 cc = protocol.ClientCreator(reactor, twisted_connection.TwistedProtocolConnection, parameters)
 d = cc.connectTCP('localhost', 5672)
 d.addCallback(lambda protocol: protocol.ready)
