@@ -80,3 +80,11 @@ implementation:
 -a deferred queue gets attached to the pdureceived function of the smpp server
 -set the config.msgHandler to a function that puts the received message on a rmq queue
 
+-the overall app will start a web server listening on local port 5000 (or specify a substitute)
+-in the web interface you can start a number of connections to remote jasmins (gong workers)
+-connections will be stopped when the main server is stopped
+
+web:
+-4 sections: dashboard, functional testing, stress testing, settings
+-dashboard will show a list of logged-in users and what they are doing, plus a big warning sign in case there is a stress testing session going on already; also status green or red on all the jasmin connections;
+

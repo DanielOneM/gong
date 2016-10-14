@@ -30,10 +30,9 @@ class GongWorker(object):
 
     def __init__(self, name=None,
                  exchange='gong',
-                 topic='gong',
                  recv_rk='received',
                  send_rk='send',
-                 rabbit_host='localhost',
+                 rabbit_host='172.19.0.3',
                  rabbit_port=5672,
                  smpp_port=None,
                  smpp_pass='default',
@@ -51,7 +50,6 @@ class GongWorker(object):
 
         self.name = name
         self.exchange = exchange
-        self.topic = topic
         self.recv_rk = recv_rk
         self.send_q = '{}.{}'.format(send_rk, name)
         self.send_rk = name
@@ -128,7 +126,7 @@ class GongWorker(object):
                                                          no_ack=False)
         self.queue_object, consumer_tag = consume_tuple
 
-        self.log.debug('starting task')
+        self.log.debug('starting consumer')
         work_task = task.LoopingCall(self.process_outgoing, self.queue_object)
         work_task.start(0.01)
 
@@ -146,10 +144,13 @@ class GongWorker(object):
         )
         # TODO: find the actual protocol object instantiated,
         #       probably it's inside self.smpp_factory.bound_connections
-        yield self.smpp_factory.protocol.sendPDU(pdu)
+        binding = self.smpp_factory.getNextBindingForDelivery()
+        if binding is not None:
+            binding.sendPDU(pdu)
 
         yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
+    @defer.inlineCallbacks
     def process_incoming(self, smpp, pdu):
         """Send messages received by the smpp server to the incoming queue."""
         self.channel.basic_publish(exchange=self.exchange,
@@ -183,7 +184,6 @@ class Options(usage.Options):
     optParameters = [
         ['name', 'n', None, 'Name for the GongWorker node'],
         ['exchange', 'e', 'gong', 'RabbitMQ exchange name'],
-        ['topic', 't', 'gong', 'RabbitMQ topic name'],
         ['recv_rk', 'i', 'received', 'Queue to store received messages'],
         ['send_rk', 'o', 'send', 'Queue used to submit messages to be sent'],
         ['rabbit_host', '', 'localhost', 'RabbitMQ hostname'],
