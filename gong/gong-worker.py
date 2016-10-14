@@ -32,7 +32,7 @@ class GongWorker(object):
                  exchange='gong',
                  recv_rk='received',
                  send_rk='send',
-                 rabbit_host='localhost',
+                 rabbit_host='172.19.0.3',
                  rabbit_port=5672,
                  smpp_port=None,
                  smpp_pass='default',
@@ -162,9 +162,9 @@ class GongWorker(object):
         self.log.debug('starting rmq')
         self.components['rabbit_server'] = self.start_rabbit(self.rabbit_host,
                                                              self.rabbit_port)
-        self.log.debug('starting smpp')
-        self.components['smpp_server'] = self.start_smpp(self.smpp_port,
-                                                         self.smpp_pass)
+        # self.log.debug('starting smpp')
+        # self.components['smpp_server'] = self.start_smpp(self.smpp_port,
+        #                                                  self.smpp_pass)
         self.log.debug('setup completed')
 
     def stop(self):
