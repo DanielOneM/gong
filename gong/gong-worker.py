@@ -68,7 +68,7 @@ class GongWorker(object):
 
     def start_rabbit(self, rabbit_host, rabbit_port):
         """Start the rabbit server connection."""
-        credentials = pika.PlainCredentials('guest','guest')
+        credentials = pika.PlainCredentials('guest', 'guest')
         parameters = pika.ConnectionParameters(host=rabbit_host,
                                                port=rabbit_port,
                                                credentials=credentials)
@@ -129,10 +129,10 @@ class GongWorker(object):
 
         consume_tuple = yield self.channel.basic_consume(queue=self.send_q,
                                                          no_ack=True)
-        self.queue_object, consumer_tag = consume_tuple
+        queue_object, consumer_tag = consume_tuple
 
         self.log.debug('starting consumer')
-        work_task = task.LoopingCall(self.process_outgoing, self.queue_object)
+        work_task = task.LoopingCall(self.process_outgoing, queue_object)
         work_task.start(0.01)
 
     @defer.inlineCallbacks
@@ -148,19 +148,19 @@ class GongWorker(object):
             destination_addr=body['dst'],
             short_message=body['sms'].encode('utf8'),
         )
-        
+
         binding = self.smpp_factory.getBoundConnections(self.name).getNextBindingForDelivery()
         if binding is not None:
             yield binding.sendPDU(pdu)
 
-        #yield ch.basic_ack(delivery_tag=method.delivery_tag)
+        # yield ch.basic_ack(delivery_tag=method.delivery_tag)
 
     @defer.inlineCallbacks
     def process_incoming(self, smpp, pdu):
         """Send messages received by the smpp server to the incoming queue."""
         yield self.channel.basic_publish(exchange=self.exchange,
-                                   routing_key=self.recv_rk,
-                                   body=pdu)
+                                         routing_key=self.recv_rk,
+                                         body=pdu)
 
     def start(self):
         """Start the worker."""

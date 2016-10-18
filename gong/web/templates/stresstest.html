@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{title}}{% endblock title%}
+
+{% block content %}
+<div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Stress testing</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="panel panel panel-default">
+                        <div class="panel-heading">
+                            <div class="input-group"> 
+                                <button class="btn btn-success btn-sm" id="btn-chat">
+                                        <i class="fa fa-play fa-fw"></i> Start testing
+                                </button>
+                                <button class="btn btn-warning btn-sm" id="btn-chat">
+                                        <i class="fa fa-pause fa-fw"></i> Pause testing
+                                </button>
+                                <button class="btn btn-danger btn-sm" id="btn-chat">
+                                        <i class="fa fa-stop fa-fw"></i> Stop testing
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="flot-chart">
+                                <div class="flot-chart-content" id="flot-line-chart-moving"></div>
+                            </div>
+
+                        </div>
+                        <!-- /.panel-body -->
+                        <div class="panel-footer">
+                            
+                        </div>
+                        <!-- /.panel-footer -->
+                    </div>
+                    <!-- /.panel .chat-panel -->
+                </div>
+                <!-- /.col-lg-4 -->
+                <div class="col-lg-4">
+                    <div>
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-primary"><i class="fa fa-download fa-fw"></i> Export results</button>
+                          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span>
+                            <span class="sr-only">Toggle Dropdown</span>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li><a href="#">Export to csv</a></li>
+                            <li><a href="#">Export to xls</a></li>
+                          </ul>
+                        </div>                        
+                    </div>
+                    <br>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <strong>Session information</strong>
+                        </div>
+                        <table class="table">
+                            <tr>
+                                <td>Strategy used:</td>
+                                <td>full flood</td>
+                            </tr>
+                            <tr>
+                                <td>Number of phones used:</td>
+                                <td>543</td>
+                            </tr>
+                            <tr>
+                                <td>Operators:</td>
+                                <td>adasdasd, fadad, gadada</td>
+                            </tr>
+                            <tr>
+                                <td>Connected to:</td>
+                                <td>jasmin.staging.onem</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <strong>Session stats</strong>
+                        </div>
+                        <table class="table">
+                            <tr>
+                                <td>Total messages sent:</td>
+                                <td>16543</td>
+                            </tr>
+                            <tr>
+                                <td>Total messages received:</td>
+                                <td>464646</td>
+                            </tr>
+                            <tr>
+                                <td>Average response time:</td>
+                                <td>25 seconds</td>
+                            </tr>
+                            <tr>
+                                <td>Estimated throughput:</td>
+                                <td>250 msgs / second</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- /.panel -->
+                </div>
+            </div>
+            <!-- /.row -->
+        </div>
+{% endblock %}

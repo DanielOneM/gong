@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}{{pagetitle}}{% endblock %}
+{% block title %}{{title}}{% endblock title%}
 
 {% block content %}
 <div id="page-wrapper">
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Dashboard</h1>
+                    <h1 class="page-header">Functional testing</h1>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -20,6 +20,18 @@
                                 <span class="input-group-btn">
                                     <button class="btn btn-warning btn-sm" id="btn-chat">
                                         Send
+                                    </button>
+                                </span>
+                            </div>
+                            <br>
+                            <div class="input-group"> 
+                                <select id="btn-input" type="text" class="form-control input-sm">
+                                    <option value="" selected disabled>Select one of the scripts from the library</option>
+                                    <option value="1">weather service test</option>
+                                </select>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-success btn-sm" id="btn-chat">
+                                        <i class="fa fa-play fa-fw"></i> Start script
                                     </button>
                                 </span>
                             </div>
@@ -100,6 +112,53 @@
                 </div>
                 <!-- /.col-lg-4 -->
                 <div class="col-lg-4">
+                    <div>
+                        <button type="button" class="btn btn-danger"><i class="fa fa-clock-o fa-fw"></i> Record session</button>
+                        <button type="button" class="btn btn-success"><i class="fa fa-save fa-fw"></i> Save to library</button>
+                        <button type="button" class="btn btn-success"><i class="fa fa-download fa-fw"></i> Save to JIRA</button>
+                    </div>
+                    <br>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <strong>Session information</strong>
+                        </div>
+                        <table class="table">
+                            <tr>
+                                <td>Phone Number:</td>
+                                <td>13123123</td>
+                            </tr>
+                            <tr>
+                                <td>Operator:</td>
+                                <td>adasdasd</td>
+                            </tr>
+                            <tr>
+                                <td>Connected to:</td>
+                                <td>jasmin.staging.onem</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <strong>Session stats</strong>
+                        </div>
+                        <table class="table">
+                            <tr>
+                                <td>Total messages sent:</td>
+                                <td>16543</td>
+                            </tr>
+                            <tr>
+                                <td>Total messages received:</td>
+                                <td>464646</td>
+                            </tr>
+                            <tr>
+                                <td>Average return time:</td>
+                                <td>22 seconds</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- /.panel -->
                 </div>
             </div>
             <!-- /.row -->

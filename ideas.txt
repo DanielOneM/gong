@@ -87,4 +87,6 @@ implementation:
 web:
 -4 sections: dashboard, functional testing, stress testing, settings
 -dashboard will show a list of logged-in users and what they are doing, plus a big warning sign in case there is a stress testing session going on already; also status green or red on all the jasmin connections;
+-async connection to kraken, async script to test the availability of jasmin connections (or use worker checking??)
+-functional testing section: start page showing a selection of available connections; user selects a connection; functional testing page displays chat box, action box with possible actions (record session (yes/no), export to csv, export to jira, ), info box on the side containing phone number, operator data; below info box there's a stats box showing total number of messages sent and received per session, average return time
 
