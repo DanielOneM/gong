@@ -1,4 +1,8 @@
+import os
+
 from jinja2 import Environment, FileSystemLoader
 
 
-jinja = Environment(loader=FileSystemLoader('/home/dread/CODE/gong/gong/web/templates'))
+template_path = os.path.join(os.path.dirname(__file__),'templates')
+print template_path
+jinja = Environment(loader=FileSystemLoader(template_path))
