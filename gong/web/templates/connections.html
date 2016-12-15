@@ -6,7 +6,11 @@
 <div id="page-wrapper">
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Jasmin connections</h1>
+                    <h1 class="page-header">Jasmin connections
+                        <a class="btn btn-success pull-right">
+                            <i class="fa fa-plus fa-fw"></i> Add connection
+                        </a>
+                    </h1>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -17,20 +21,22 @@
                     <div class="panel panel panel-default">
                         <div class="panel-heading">
                             <strong>{{item['name']}}</strong>
-                            <div class="input-group pull-right"> 
-                                <a class="btn btn-success btn-xs">
-                                        <i class="fa fa-edit fa-fw"></i>
-                                </a>
-                                <a class="btn btn-danger btn-xs">
-                                        <i class="fa fa-remove fa-fw"></i>
-                                </a>
+                            <div class="pull-right">
+                                <div class="input-group"> 
+                                    <a class="btn btn-success btn-xs">
+                                            <i class="fa fa-edit fa-fw"></i>
+                                    </a>
+                                    <a class="btn btn-danger btn-xs">
+                                            <i class="fa fa-remove fa-fw"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         <!-- /.panel-heading -->
                         <table class="table">
                             <tr>
-                                <td>Total messages sent:</td>
-                                <td>16543</td>
+                                <td>Ip Address:</td>
+                                <td>156.132.123.123</td>
                             </tr>
                             <tr>
                                 <td>Total messages received:</td>
@@ -41,8 +47,8 @@
                                 <td>25 seconds</td>
                             </tr>
                             <tr>
-                                <td>Estimated throughput:</td>
-                                <td>250 msgs / second</td>
+                                <td>Current status:</td>
+                                <td>ONLINE</td>
                             </tr>
                         </table>
                     </div>
