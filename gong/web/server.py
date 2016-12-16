@@ -1,11 +1,12 @@
+import os
+import random
+
 from twisted.internet import reactor
-from twisted.web.resource import Resource, NoResource
+from twisted.web.resource import Resource
 from twisted.web.static import File
 from twisted.web.server import Site
 
 from config import jinja
-import os
-import random
 
 
 class DashPage(Resource):
@@ -33,8 +34,9 @@ class DashPage(Resource):
         template = jinja.get_template(self.template_name)
         return template.render(ctx).encode('utf-8')
 
+
 class FuncPage(Resource):
-    isLeaf = False
+    isLeaf = True
     template_name = "functest.html"
 
     def render_GET(self, request):
@@ -45,8 +47,9 @@ class FuncPage(Resource):
         template = jinja.get_template(self.template_name)
         return template.render(ctx).encode('utf-8')
 
+
 class StressPage(Resource):
-    isLeaf = False
+    isLeaf = True
     template_name = "stresstest.html"
 
     def render_GET(self, request):
@@ -57,10 +60,58 @@ class StressPage(Resource):
         template = jinja.get_template(self.template_name)
         return template.render(ctx).encode('utf-8')
 
+
+class SettingsPage(Resource):
+    isLeaf = False
+
+    def getChild(self, name, request):
+        return DynamicSettingsPage(name)
+
+
+class DynamicSettingsPage(Resource):
+    def __init__(self, name):
+        Resource.__init__(self)
+        self.template_name = name + '.html'
+
+    def render_GET(self, request):
+        ctx = {
+            'title': 'ONEm testing app - Stress testing',
+            'user': 'Daniel Enache',
+            'connections': [
+                {'name': 'first jasmin'},
+                {'name': 'second jasmin'}
+                ],
+            'tests': [
+                {'description': 'full test',
+                 'service': 'weather'},
+                {'description': 'full test',
+                 'service': 'news'}
+                ],
+            'operators': [
+                {'name': 'vodafone',
+                 'connection': 'first jasmin',
+                 'numbers': '43'},
+                {'name': 'orange',
+                 'connection': 'second jasmin',
+                 'numbers': '143'}
+                ],
+            'strategies': [
+                {'name': 'full flood',
+                 'description': 'Start with the full power'},
+                {'name': 'steady growth',
+                 'description': 'Start small and grow'}
+                ]
+        }
+
+        template = jinja.get_template(self.template_name)
+        return template.render(ctx).encode('utf-8')
+
+
 root = DashPage()
 root.putChild('static', File(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')))
 root.putChild('functional', FuncPage())
 root.putChild('stress', StressPage())
+root.putChild('settings', SettingsPage())
 
 factory = Site(root)
 reactor.listenTCP(5000, factory)

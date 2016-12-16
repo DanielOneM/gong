@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{title}}{% endblock title%}
+
+{% block content %}
+<div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Stress strategies
+                        <a class="btn btn-success pull-right">
+                            <i class="fa fa-plus fa-fw"></i> Add strategy
+                        </a>
+                    </h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+            	<div class="col-lg-12">
+                    <div class="panel panel panel-default">
+                        <table class="table">
+                        {% for item in strategies %}
+                            <tr>
+                                <td><a><strong>Name:</strong> {{item['name']}}</a></td>
+                                <td><strong>Description:</strong> {{item['description']}}</td>
+                                <td>
+                                    <div class="pull-right">
+                                        <a class="btn btn-danger btn-xs">
+                                            <i class="fa fa-remove fa-fw"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                    </div>
+                    <!-- /.panel .chat-panel -->
+                </div>
+            </div>
+            <!-- /.row -->
+        </div>
+{% endblock %}
