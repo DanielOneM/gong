@@ -87,6 +87,17 @@ implementation:
 web:
 -4 sections: dashboard, functional testing, stress testing, settings
 -dashboard will show a list of logged-in users and what they are doing, plus a big warning sign in case there is a stress testing session going on already; also status green or red on all the jasmin connections;
--async connection to kraken, async script to test the availability of jasmin connections (or use worker checking??)
+-async connection to kraken, async script to test the availability of jasmin connections (telnet to jasmins)
 -functional testing section: start page showing a selection of available connections; user selects a connection; functional testing page displays chat box, action box with possible actions (record session (yes/no), export to csv, export to jira, ), info box on the side containing phone number, operator data; below info box there's a stats box showing total number of messages sent and received per session, average return time
+-analytics for testing sessions are kept in a local cache (redis maybe)
+-twisted c&c app will have following components: telnetchecker, pikachecker, krakenchecker, webinterface, rediscache
 
+
+https://twisted.readthedocs.io/en/latest/core/howto/tutorial/intro.html
+https://twisted.readthedocs.io/en/latest/core/howto/defer-intro.html
+http://flylib.com/books/en/2.407.1.38/1/
+http://twistedmatrix.com/documents/current/web/howto/web-in-60/dynamic-dispatch.html
+http://twistedmatrix.com/documents/current/web/howto/web-in-60/asynchronous-deferred.html
+http://twistedmatrix.com/pipermail/twisted-python/2007-June/015623.html
+https://twistedmatrix.com/documents/current/core/howto/process.html
+file:///home/dread/Downloads/startbootstrap-sb-admin-2-gh-pages/pages/flot.html
