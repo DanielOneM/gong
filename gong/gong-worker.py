@@ -1,8 +1,11 @@
 # -*- coding:utf-8 -*-
 import pika
 import signal
-import sys, os
+import sys
+import os
 import logging
+import random
+import string
 #TODO: horrible hack used to solve import problems with vendor packages
 sys.path.append(os.path.dirname(__file__))
 sys.path.append("")
@@ -14,6 +17,7 @@ from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
 from twisted.cred.portal import Portal
 from twisted.cred.portal import IRealm
 from zope.interface import implements
+
 from gong.vendor.twisted.server import SMPPServerFactory
 from gong.vendor.twisted.config import SMPPServerConfig
 from gong.vendor.pdu.operations import DeliverSM
@@ -42,14 +46,22 @@ class GongWorker(object):
         if name is None:
             raise ValueError('GongWorker node needs a name.')
         if smpp_port is None:
-            raise ValueError('GongWorker needs a port number for the local port to listen to')
+            raise ValueError('GongWorker needs a port number for \
+                the local port to listen to')
 
         try:
             self.smpp_port = int(smpp_port)
         except Exception:
-            raise ValueError('GongWorker SMPP port number needs to be an integer')
+            raise ValueError('GongWorker SMPP port number needs \
+                to be an integer')
 
-        self.name = name
+        if name is not None:
+            self.name = name
+        else:
+            self.name = ''.join(
+                random.choice(string.ascii_letters + string.digits)
+                for _ in range(8))
+
         self.exchange = exchange
         self.recv_rk = recv_rk
         self.send_q = '{}.{}'.format(send_rk, name)
@@ -60,7 +72,7 @@ class GongWorker(object):
         self.components = {}
 
         if log is None:
-            self.log = logging.getLogger('gongworker')
+            self.log = logging.getLogger('<gongwrk-{}>'.format(self.name))
         else:
             self.log = log
 

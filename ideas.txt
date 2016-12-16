@@ -91,6 +91,20 @@ web:
 -functional testing section: start page showing a selection of available connections; user selects a connection; functional testing page displays chat box, action box with possible actions (record session (yes/no), export to csv, export to jira, ), info box on the side containing phone number, operator data; below info box there's a stats box showing total number of messages sent and received per session, average return time
 -analytics for testing sessions are kept in a local cache (redis maybe)
 -twisted c&c app will have following components: telnetchecker, pikachecker, krakenchecker, webinterface, rediscache
+-stores all the data (connections, operators, test library, strategies) in kraken
+
+fields for web sections:
+-test library: service name, check output, input command, output data patterns
+-connections: jasmin ip/port, jasmin user/pwd, gong data (user, pwd, ip, port)
+-operators: name, jasmin connection used, numbers registered
+-stress strategies: strategy name/description, nr of operators, min/max phones, per operator settings (strategy curve, start time delay, total running time)
+
+strategy curve is a polynomial function where x is time and y is the number of messages; given a certain timestamp x you can determine the number of messages y to be sent at that timestamp
+
+TODO:
+-make a list of smpp attributes needed for the smpp message
+-make a big service that contains a gongworker component; you can start multiple gongworker instances and keep them in a dictionary based on their name
+-the big service can hold also the http server for the web service
 
 
 https://twisted.readthedocs.io/en/latest/core/howto/tutorial/intro.html
