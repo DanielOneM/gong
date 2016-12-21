@@ -103,8 +103,10 @@ strategy curve is a polynomial function where x is time and y is the number of m
 
 TODO:
 -make a list of smpp attributes needed for the smpp message
--make a big service that contains a gongworker component; you can start multiple gongworker instances and keep them in a dictionary based on their name
 -the big service can hold also the http server for the web service
+-make a component that will connect to kraken and create, read, update, delete all the needed info (operators and numbers, connections, etc)
+-most of the configuration will be stored there
+-gongworker will be a separate process; cannot start multiple instances after reactor has started; communicate with gongworker through local rabbitmq (or perspective broker); start/stop through multiprocessing script
 
 
 https://twisted.readthedocs.io/en/latest/core/howto/tutorial/intro.html
